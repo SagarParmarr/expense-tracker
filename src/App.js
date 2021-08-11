@@ -1,23 +1,33 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import Expenses from "./components/Expenses/Expenses";
+import NewExpense from "./components/NewExpense/NewExpense";
+import db from "./firebase";
 
 function App() {
+  //const [expenses, setExpenses] = useState(DUMMY_EXPENSES);
+  const [expenses, setExpenses] = useState([{}]);
+  const onAddExpenseDataHandler = (expense) => {
+    let id = db.collection("expenses").doc().id;
+    db.collection("expenses").doc(id).set({
+      amount: expense.amount,
+      date: expense.date,
+      title: expense.title,
+      id: id,
+    });
+  };
+
+  // for fatching from firebase
+  useEffect(() => {
+    db.collection("expenses")
+      .orderBy("date", "desc")
+      .onSnapshot((snapshot) => {
+        setExpenses(snapshot.docs.map((doc) => doc.data()));
+      });
+  }, []);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <NewExpense onAddExpenseData={onAddExpenseDataHandler} />
+      <Expenses items={expenses} />
     </div>
   );
 }
